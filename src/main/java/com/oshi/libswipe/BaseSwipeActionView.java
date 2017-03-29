@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -19,11 +20,11 @@ import android.widget.FrameLayout;
 
 /**
  * Created By udi.oshi on 3/21/2017.
- * This base view inflates the background area (Will be shown during swipe)
+ * This view handles swipe gesture of a given child by the users.
  */
-public abstract class BaseSwipeView extends FrameLayout {
+public abstract class BaseSwipeActionView extends FrameLayout {
 
-    static final String TAG = "BaseSwipeView";
+    static final String TAG = "BaseSwipeActionView";
     static final int ANIMATE_SWIPE_CLOSE_DURATION = 500;
 
     // Views
@@ -35,8 +36,7 @@ public abstract class BaseSwipeView extends FrameLayout {
     public abstract int getRightIconResId();
     public abstract int getOverlayLayoutResId();
     public abstract boolean isSwipeEnabled();
-    public abstract void onSwipeLeft();
-    public abstract void onSwipeRight();
+
 
     // Prims
     protected float minimumXtoHandleEvents;
@@ -45,23 +45,30 @@ public abstract class BaseSwipeView extends FrameLayout {
 
     protected GestureDetector gestureDetector;
 
+    protected OnSwipedListener onSwipedListener;
 
-    public BaseSwipeView(@NonNull Context context) {
+    public interface OnSwipedListener {
+        void onSwipeLeft();
+        void onSwipeRight();
+    }
+
+
+    public BaseSwipeActionView(@NonNull Context context) {
         this(context, null);
     }
 
-    public BaseSwipeView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public BaseSwipeActionView(@NonNull Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public BaseSwipeView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
+    public BaseSwipeActionView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
     private void init() {
         // Inflating the background area
-        inflate(getContext(), R.layout.view_base_swipe, BaseSwipeView.this);
+        inflate(getContext(), R.layout.view_base_swipe, BaseSwipeActionView.this);
 
         AppCompatImageView leftIconView = (AppCompatImageView) findViewById(R.id.leftIcon);
         leftIconView.setImageResource(getLeftIconResId());
@@ -91,7 +98,7 @@ public abstract class BaseSwipeView extends FrameLayout {
             protected boolean onSwipeLeft(float velocityX) {
                 if (isSwipeEnabled()) {
                     gestureOnSwipeDetected = true;
-                    BaseSwipeView.this.onSwipeLeft();
+                    notifySwipedLeft();
 
                 }
                 return true;
@@ -101,7 +108,7 @@ public abstract class BaseSwipeView extends FrameLayout {
             protected boolean onSwipeRight(float velocityX) {
                 if (isSwipeEnabled()) {
                     gestureOnSwipeDetected = true;
-                    BaseSwipeView.this.onSwipeRight();
+                    notifySwipedRight();
                 }
                 return true;
             }
@@ -125,11 +132,6 @@ public abstract class BaseSwipeView extends FrameLayout {
 
                 // Block scroll up/down of list while item is being scrolled right/left
                 requestDisallowInterceptTouchEvent(true);
-
-//                swipeBackgroundAreaView.setVisibility(VISIBLE);
-
-//                rightShadow.setVisibility(VISIBLE);
-//                leftShadow.setVisibility(VISIBLE);
 
                 int leftMargin = (int) container.getX();
 
@@ -223,9 +225,9 @@ public abstract class BaseSwipeView extends FrameLayout {
                         if (!gestureOnSwipeDetected) {
 
                             if (leftMargin < 0) {
-                                onSwipeLeft();
+                                notifySwipedLeft();
                             } else {
-                                onSwipeRight();
+                                notifySwipedRight();
                             }
                         }
                     }
@@ -268,6 +270,24 @@ public abstract class BaseSwipeView extends FrameLayout {
         });
         animator1.setInterpolator(new OvershootInterpolator(2f));
         animator1.start();
+    }
+
+    public void setOnSwipedListener(OnSwipedListener l) {
+        this.onSwipedListener = l;
+    }
+
+    private void notifySwipedLeft() {
+        Log.d(TAG, "Notifying swipe left");
+        if (onSwipedListener != null) {
+            onSwipedListener.onSwipeLeft();
+        }
+    }
+
+    private void notifySwipedRight() {
+        Log.d(TAG, "Notifying swipe right");
+        if (onSwipedListener != null) {
+            onSwipedListener.onSwipeRight();
+        }
     }
 
 
