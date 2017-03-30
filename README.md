@@ -6,7 +6,7 @@
 ## Usage
 #### First, Compile library into your code
 ```javascript
-compile 'com.github.udioshi85:libSwipe:0.8.5'
+compile 'com.github.udioshi85:libSwipe:1.0.0'
 ```
 #### Make A simple view and extend BaseSwipeActionView as following
 ```javascript
