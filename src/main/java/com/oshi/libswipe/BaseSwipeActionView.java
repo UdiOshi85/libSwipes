@@ -3,6 +3,7 @@ package com.oshi.libswipe;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,8 +29,8 @@ public abstract class BaseSwipeActionView extends FrameLayout {
     static final int ANIMATE_SWIPE_CLOSE_DURATION = 500;
 
     // Views
-    protected View container;
     private FrameLayout childContainer;
+    private View swipeContainer;
 
     // Abs
     public abstract int getLeftIconResId();
@@ -52,6 +53,21 @@ public abstract class BaseSwipeActionView extends FrameLayout {
         void onSwipeRight();
     }
 
+    private View.OnClickListener childContainerClickListener;
+
+    // Wrapper for click effects
+    private View.OnClickListener containerClickListenerWrapper = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (childContainerClickListener != null) {
+                /*if (isSwipeEnabled()) {
+                    transitionBackground(true);
+                }*/
+                childContainerClickListener.onClick(childContainer);
+            }
+        }
+    };
+
 
     public BaseSwipeActionView(@NonNull Context context) {
         this(context, null);
@@ -70,17 +86,18 @@ public abstract class BaseSwipeActionView extends FrameLayout {
         // Inflating the background area
         inflate(getContext(), R.layout.view_base_swipe, BaseSwipeActionView.this);
 
+        swipeContainer = findViewById(R.id.swipeContainer);
+
         AppCompatImageView leftIconView = (AppCompatImageView) findViewById(R.id.leftIcon);
         leftIconView.setImageResource(getLeftIconResId());
         AppCompatImageView rightIconView = (AppCompatImageView) findViewById(R.id.rightIcon);
         rightIconView.setImageResource(getRightIconResId());
 
-        childContainer = (FrameLayout) findViewById(R.id.childContainer);
-
         // Inflating the foreground area
+        childContainer = (FrameLayout) findViewById(R.id.childContainer);
+        childContainer.setBackgroundColor(Color.CYAN);
         LayoutInflater.from(getContext()).inflate(getOverlayLayoutResId(), childContainer, true);
-
-        container = findViewById(R.id.container);
+        childContainer.setOnClickListener(containerClickListenerWrapper);
 
         minimumXtoHandleEvents = getResources().getDimension(R.dimen.dimen_swipe_minumum_x);
 
@@ -99,7 +116,6 @@ public abstract class BaseSwipeActionView extends FrameLayout {
                 if (isSwipeEnabled()) {
                     gestureOnSwipeDetected = true;
                     notifySwipedLeft();
-
                 }
                 return true;
             }
@@ -133,16 +149,16 @@ public abstract class BaseSwipeActionView extends FrameLayout {
                 // Block scroll up/down of list while item is being scrolled right/left
                 requestDisallowInterceptTouchEvent(true);
 
-                int leftMargin = (int) container.getX();
+                int leftMargin = (int) swipeContainer.getX();
 
                 // Allow movement only up to 1/3 of the screen
                 int maxMovement = Utils.getScreenWidth() / 3;
                 if (Math.abs(leftMargin - distanceX) < maxMovement) {
-                    container.setX(leftMargin - distanceX);
+                    swipeContainer.setX(leftMargin - distanceX);
                 } else if (leftMargin != maxMovement) {
                     //first time we are passing the max movement barier - setting the X position to be exactly as max movement
-                    if (leftMargin < 0) container.setX(-maxMovement);
-                    else container.setX(maxMovement);
+                    if (leftMargin < 0) swipeContainer.setX(-maxMovement);
+                    else swipeContainer.setX(maxMovement);
                 }
 
                 // Handle showing of SMS/Call icons animation
@@ -187,7 +203,6 @@ public abstract class BaseSwipeActionView extends FrameLayout {
 
             @Override
             public void onLongPress(MotionEvent e) {
-
             }
 
             @Override
@@ -220,7 +235,7 @@ public abstract class BaseSwipeActionView extends FrameLayout {
             if (ev.getAction() == MotionEvent.ACTION_UP) {
                 if (gestureOnScrollDetected) {
                     // Handle return of scroll to starting position and perform action if needed
-                    int leftMargin = (int) container.getX();
+                    int leftMargin = (int) swipeContainer.getX();
                     if (Math.abs(leftMargin) > Utils.getScreenWidth() / 4) {
                         if (!gestureOnSwipeDetected) {
 
@@ -231,7 +246,7 @@ public abstract class BaseSwipeActionView extends FrameLayout {
                             }
                         }
                     }
-                    animateScroll((int) container.getX(), 0);
+                    animateScroll((int) swipeContainer.getX(), 0);
                     return true;
                 }
             }
@@ -245,7 +260,7 @@ public abstract class BaseSwipeActionView extends FrameLayout {
     }
 
     private void animateScroll(int from, int to) {
-        ObjectAnimator animator1 = ObjectAnimator.ofFloat(container, View.TRANSLATION_X, from, to);
+        ObjectAnimator animator1 = ObjectAnimator.ofFloat(swipeContainer, View.TRANSLATION_X, from, to);
         animator1.setDuration(ANIMATE_SWIPE_CLOSE_DURATION);
         animator1.addListener(new Animator.AnimatorListener() {
             @Override
@@ -254,9 +269,6 @@ public abstract class BaseSwipeActionView extends FrameLayout {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-//                swipeBackgroundAreaView.setVisibility(INVISIBLE);
-//                rightShadow.setVisibility(INVISIBLE);
-//                leftShadow.setVisibility(INVISIBLE);
                 requestDisallowInterceptTouchEvent(true);
             }
 
@@ -290,5 +302,8 @@ public abstract class BaseSwipeActionView extends FrameLayout {
         }
     }
 
-
+    @Override
+    public void setOnClickListener(@Nullable OnClickListener l) {
+        this.childContainerClickListener = l;
+    }
 }

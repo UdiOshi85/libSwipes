@@ -32,10 +32,6 @@ class SwipeGestureListener extends SimpleOnGestureListener {
 
     private final Sensitivity sensitivity;
 
-    public SwipeGestureListener() {
-        this(Sensitivity.HIGH);
-    }
-
     public SwipeGestureListener(Sensitivity sensitivity) {
         this.sensitivity = sensitivity;
     }
@@ -73,14 +69,6 @@ class SwipeGestureListener extends SimpleOnGestureListener {
                         }
                     }
                 }
-            } else {
-                if (Math.abs(diffY) > sensitivity.getThreshold() && Math.abs(velocityY) > sensitivity.getVelocityThreshold()) {
-                    if (diffY > 0) {
-                        result = onSwipeBottom(velocityY);
-                    } else {
-                        result = onSwipeTop(velocityY);
-                    }
-                }
             }
         } catch (Exception exception) {
             Log.e(SwipeGestureListener.class.getSimpleName(), "onFling error");
@@ -90,15 +78,6 @@ class SwipeGestureListener extends SimpleOnGestureListener {
 
     protected boolean onSwipeRight(float velocityX) {
         return false;
-    }
-
-    protected boolean onSwipeTop(float velocityY) {
-        return false;
-    }
-
-    protected boolean onSwipeBottom(float velocityY) {
-        return false;
-
     }
 
     protected boolean onSwipeLeft(float velocityX) {
