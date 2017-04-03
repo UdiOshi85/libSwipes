@@ -46,7 +46,7 @@ public class SimpleSwipeActionView extends BaseSwipeActionView {
 }
 ```
 #### Important notes
-* Your xml (R.layout.view_simple_swipe_action in the example) must have Background color.
+* Your xml (R.layout.view_simple_swipe_action in the example) must have Background color. (There are 2 action icons behind it)
 * Found a Bug? please report in our [Issues section](https://github.com/UdiOshi85/libSwipes/issues)
 * If you want me to add/modify something please email me to udioshi@gmail.com
 * License under [Apache 2.0](https://github.com/UdiOshi85/libSwipes/blob/master/LICENSE) (Take the code and do whatever you want)
